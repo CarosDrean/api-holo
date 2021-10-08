@@ -25,6 +25,14 @@ func NewSqlServer(config DBConfig) (*SqlServer, error) {
 	)
 
 	db, err := sql.Open("sqlserver", dns)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := db.Ping(); err != nil {
+		return nil, err
+	}
+
 	return &SqlServer{db: db}, err
 }
 
