@@ -1,0 +1,29 @@
+{
+  "env": "local",
+  "debug": true,
+  "log_folder": "./logs",
+  "files_folder": "./files",
+  "port_http": 14000,
+  "cert_pem": "./certificates/cert.pem",
+  "key_pem": "./certificates/key.pem",
+  "public_file_sign": "./certificates/app.rsa.pub",
+  "private_file_sign": "./certificates/app.rsa",
+  "allowed_origins": [
+    "*"
+  ],
+  "allowed_methods": [
+    "POST",
+    "DELETE",
+    "PUT",
+    "GET"
+  ],
+  "database": {
+    "engine": "postgres",
+    "server": "127.0.0.1",
+    "port": 5432,
+    "user": "postgres",
+    "password": "123456",
+    "name": "cursos",
+    "sslmode"  : "disable"
+  }
+}
