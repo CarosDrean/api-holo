@@ -1,6 +1,8 @@
 package router
 
 import (
+	"api-holo/infraestucture/handler/cie10"
+	"api-holo/kit/authorization"
 	"api-holo/model"
 	"database/sql"
 
@@ -9,15 +11,11 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type Configuration interface {
-	DBEngine() string
-}
-
-func InitRoutes(app *echo.Echo, db *sql.DB, config Configuration, logger model.Logger) {
-	//authMiddleware := authorization.NewAuthServiceValidator(logger)
+func InitRoutes(app *echo.Echo, db *sql.DB, logger model.Logger) {
+	authMiddleware := authorization.NewAuthServiceValidator(logger)
 
 	// H
 	health.NewRouter(app)
 
-	//executor.NewRouter(app, authMiddleware, permissionMiddleware, logger, param, queueUseCase)
+	cie10.NewRouter(app, db, authMiddleware, logger)
 }
