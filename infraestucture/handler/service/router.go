@@ -1,22 +1,22 @@
-package cie10
+package service
 
 import (
 	"database/sql"
 	"fmt"
 
-	"api-holo/domain/cie10"
+	"api-holo/domain/service"
 	"api-holo/infraestucture/handler/response"
-	cie10Storage "api-holo/infraestucture/sqlserver/cie10"
+	serviceStorage "api-holo/infraestucture/sqlserver/service"
 	"api-holo/kit/authorization"
 	"api-holo/model"
 
 	"github.com/labstack/echo/v4"
 )
 
-const routeVersionPrefix = "api/v1/cie10"
+const routeVersionPrefix = "api/v1/service"
 
 func NewRouter(app *echo.Echo, db *sql.DB, authMiddleware authorization.AuthMiddleware, logger model.Logger) {
-	useCaseCie10 := cie10.New(cie10Storage.New(db), logger)
+	useCaseCie10 := service.New(serviceStorage.New(db))
 	responser := response.New(logger)
 
 	handler := NewHandler(useCaseCie10, responser)
@@ -30,13 +30,13 @@ func adminRoutes(app *echo.Echo, handler Handler, middlewares ...echo.Middleware
 
 	api.POST("", handler.Create)
 	api.PUT("/:id", handler.Update)
-	api.GET("all", handler.GetAllWhere)
 	api.GET("", handler.GetWhere)
+	api.GET("all", handler.GetAllWhere)
 }
 
 func privateRoutes(app *echo.Echo, handler Handler, middlewares ...echo.MiddlewareFunc) {
 	api := app.Group(fmt.Sprintf("%sprivate/", routeVersionPrefix), middlewares...)
 
-	api.GET("all", handler.GetAllWhere)
 	api.GET("", handler.GetWhere)
+	api.GET("all", handler.GetAllWhere)
 }
