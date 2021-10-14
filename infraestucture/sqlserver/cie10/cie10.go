@@ -1,10 +1,11 @@
 package cie10
 
 import (
+	"database/sql"
+
 	"api-holo/infraestucture/sqlserver"
 	sqlutil "api-holo/kit/sqlserver"
 	"api-holo/model"
-	"database/sql"
 )
 
 const Table = "cie10"
@@ -14,16 +15,12 @@ var Fields = []string{
 	"v_CIE10Description2",
 }
 
-const (
-	fieldID        = "v_CIE10Id"
-	fieldCreatedAt = ""
-	fieldUpdatedAt = ""
-)
+const fieldID = "v_CIE10Id"
 
 var (
-	psqlInsert = sqlserver.BuildSQLInsert(Table, Fields, fieldID, fieldCreatedAt)
-	psqlUpdate = sqlserver.BuildSQLUpdateByID(Table, Fields, fieldID, fieldUpdatedAt)
-	psqlGetAll = sqlserver.BuildSQLSelect(Table, Fields, fieldCreatedAt, fieldUpdatedAt)
+	psqlInsert = sqlserver.BuildSQLInsert(Table, Fields, fieldID)
+	psqlUpdate = sqlserver.BuildSQLUpdateByID(Table, Fields, fieldID)
+	psqlGetAll = sqlserver.BuildSQLSelect(Table, Fields, fieldID)
 )
 
 type Cie10 struct {

@@ -8,7 +8,7 @@ import (
 )
 
 // BuildSQLInsert builds a query INSERT of postgres
-func BuildSQLInsert(table string, fields []string, returning ...string) string {
+func BuildSQLInsert(table string, fields []string, fieldID string) string {
 	var args, vals string
 
 	for k, v := range fields {
@@ -21,11 +21,11 @@ func BuildSQLInsert(table string, fields []string, returning ...string) string {
 		vals = vals[:len(vals)-1]
 	}
 
-	return fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s) RETURNING %s", table, args, vals, strings.Join(returning, ", "))
+	return fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s) RETURNING %s, d_InsertDate", table, args, vals, fieldID)
 }
 
 // BuildSQLUpdateByID builds a query UPDATE of postgres
-func BuildSQLUpdateByID(table string, fields []string, fieldID, fieldUpdatedAt string) string {
+func BuildSQLUpdateByID(table string, fields []string, fieldID string) string {
 	if len(fields) == 0 {
 		return ""
 	}
@@ -35,11 +35,11 @@ func BuildSQLUpdateByID(table string, fields []string, fieldID, fieldUpdatedAt s
 		args += fmt.Sprintf("%s = $%d, ", v, k+1)
 	}
 
-	return fmt.Sprintf("UPDATE %s SET %s%s = GETDATE() WHERE %s = $%d", table, args, fieldUpdatedAt, fieldID, len(fields)+1)
+	return fmt.Sprintf("UPDATE %s SET %sd_UpdateDate = GETDATE() WHERE %s = $%d", table, args, fieldID, len(fields)+1)
 }
 
 // BuildSQLSelect builds a query SELECT of postgres
-func BuildSQLSelect(table string, fields []string, fieldCreatedAt, fieldUpdatedAt string) string {
+func BuildSQLSelect(table string, fields []string, fieldID string) string {
 	if len(fields) == 0 {
 		return ""
 	}
@@ -49,7 +49,7 @@ func BuildSQLSelect(table string, fields []string, fieldCreatedAt, fieldUpdatedA
 		args += fmt.Sprintf("%s, ", v)
 	}
 
-	return fmt.Sprintf("SELECT id, %s%s, %s FROM %s", args, fieldCreatedAt, fieldUpdatedAt, table)
+	return fmt.Sprintf("SELECT %s, %sd_InsertDate, d_UpdateDate FROM %s", fieldID, args, table)
 }
 
 // BuildSQLSelectFields builds a query SELECT of postgres
@@ -77,7 +77,7 @@ func BuildSQLUpdateBy(table string, fields []string, by string) string {
 		args += fmt.Sprintf("%s = $%d, ", v, k+1)
 	}
 
-	return fmt.Sprintf("UPDATE %s SET %supdated_at = now() WHERE %s = $%d", table, args, by, len(fields)+1)
+	return fmt.Sprintf("UPDATE %s SET %sd_UpdateDate = now() WHERE %s = $%d", table, args, by, len(fields)+1)
 }
 
 // BuildSQLWhere builds and returns a query WHERE of postgres and its arguments
@@ -203,7 +203,7 @@ func ColumnsAliased(fields []string, aliased string) string {
 		columns += fmt.Sprintf("%s.%s, ", aliased, v)
 	}
 
-	return fmt.Sprintf("%s.id, %s%s.created_at, %s.updated_at",
+	return fmt.Sprintf("%s.id, %s%s.d_InsertDate, %s.d_UpdateDate",
 		aliased, columns, aliased, aliased)
 }
 
@@ -217,7 +217,7 @@ func ColumnsAliasedWithDefault(fields []string, aliased string) string {
 		columns += fmt.Sprintf("%s.%s, ", aliased, v)
 	}
 
-	return fmt.Sprintf("%s.id, %s%s.created_at, %s.updated_at",
+	return fmt.Sprintf("%s.id, %s%s.d_InsertDate, %s.d_UpdateDate",
 		aliased, columns, aliased, aliased)
 }
 

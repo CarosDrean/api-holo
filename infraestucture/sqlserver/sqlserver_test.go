@@ -11,105 +11,97 @@ import (
 
 func TestBuildSQLInsert(t *testing.T) {
 	tableTest := []struct {
-		table     string
-		fields    []string
-		returning []string
-		want      string
+		table   string
+		fields  []string
+		fieldID string
+		want    string
 	}{
 		{
-			table:     "cashboxes",
-			fields:    []string{"responsable", "country", "user_id", "account"},
-			returning: []string{"id", "created_at"},
-			want:      "INSERT INTO cashboxes (responsable,country,user_id,account) VALUES ($1,$2,$3,$4) RETURNING id, created_at",
+			table:   "cashboxes",
+			fields:  []string{"responsable", "country", "user_id", "account"},
+			fieldID: "id",
+			want:    "INSERT INTO cashboxes (responsable,country,user_id,account) VALUES ($1,$2,$3,$4) RETURNING id, d_InsertDate",
 		},
 		{
-			table:     "nothing",
-			fields:    []string{},
-			returning: []string{"id", "created_at"},
-			want:      "INSERT INTO nothing () VALUES () RETURNING id, created_at",
+			table:   "nothing",
+			fields:  []string{},
+			fieldID: "id",
+			want:    "INSERT INTO nothing () VALUES () RETURNING id, d_InsertDate",
 		},
 		{
-			table:     "one",
-			fields:    []string{"one_field"},
-			returning: []string{"id", "created_at"},
-			want:      "INSERT INTO one (one_field) VALUES ($1) RETURNING id, created_at",
+			table:   "one",
+			fields:  []string{"one_field"},
+			fieldID: "id",
+			want:    "INSERT INTO one (one_field) VALUES ($1) RETURNING id, d_InsertDate",
 		},
 	}
 
 	for _, tt := range tableTest {
-		assert.Equal(t, tt.want, BuildSQLInsert(tt.table, tt.fields, tt.returning...))
+		assert.Equal(t, tt.want, BuildSQLInsert(tt.table, tt.fields, tt.fieldID))
 	}
 }
 
 func TestBuildSQLUpdateByID(t *testing.T) {
 	tableTest := []struct {
-		table          string
-		fields         []string
-		fieldID        string
-		fieldUpdatedAt string
-		want           string
+		table   string
+		fields  []string
+		fieldID string
+		want    string
 	}{
 		{
-			table:          "cashboxes",
-			fields:         []string{"responsable", "country", "user_id", "account"},
-			fieldID:        "id",
-			fieldUpdatedAt: "updated_at",
-			want:           "UPDATE cashboxes SET responsable = $1, country = $2, user_id = $3, account = $4, updated_at = GETDATE() WHERE id = $5",
+			table:   "cashboxes",
+			fields:  []string{"responsable", "country", "user_id", "account"},
+			fieldID: "id",
+			want:    "UPDATE cashboxes SET responsable = $1, country = $2, user_id = $3, account = $4, d_UpdateDate = GETDATE() WHERE id = $5",
 		},
 		{
-			table:          "nothing",
-			fields:         []string{},
-			fieldID:        "",
-			fieldUpdatedAt: "",
-			want:           "",
+			table:   "nothing",
+			fields:  []string{},
+			fieldID: "",
+			want:    "",
 		},
 		{
-			table:          "one",
-			fields:         []string{"one_field"},
-			fieldID:        "id",
-			fieldUpdatedAt: "updated_at",
-			want:           "UPDATE one SET one_field = $1, updated_at = GETDATE() WHERE id = $2",
+			table:   "one",
+			fields:  []string{"one_field"},
+			fieldID: "id",
+			want:    "UPDATE one SET one_field = $1, d_UpdateDate = GETDATE() WHERE id = $2",
 		},
 	}
 
 	for _, tt := range tableTest {
-		assert.Equal(t, tt.want, BuildSQLUpdateByID(tt.table, tt.fields, tt.fieldID, tt.fieldUpdatedAt))
+		assert.Equal(t, tt.want, BuildSQLUpdateByID(tt.table, tt.fields, tt.fieldID))
 	}
 }
 
 func TestBuildSQLSelect(t *testing.T) {
 	tableTest := []struct {
-		table          string
-		fields         []string
-		fieldCreatedAt string
-		fieldUpdatedAt string
-		want           string
+		table   string
+		fields  []string
+		fieldID string
+		want    string
 	}{
 		{
-			table:          "cashboxes",
-			fields:         []string{"responsable", "country", "user_id", "account"},
-			fieldCreatedAt: "created_at",
-			fieldUpdatedAt: "updated_at",
-			want:           "SELECT id, responsable, country, user_id, account, created_at, updated_at FROM cashboxes",
+			table:   "cashboxes",
+			fields:  []string{"responsable", "country", "user_id", "account"},
+			fieldID: "id",
+			want:    "SELECT id, responsable, country, user_id, account, d_InsertDate, d_UpdateDate FROM cashboxes",
 		},
 		{
-			table:          "nothing",
-			fields:         []string{},
-			fieldCreatedAt: "",
-			fieldUpdatedAt: "",
-			want:           "",
+			table:   "nothing",
+			fields:  []string{},
+			fieldID: "id",
+			want:    "",
 		},
 		{
-			table:          "one",
-			fields:         []string{"one_field"},
-			fieldCreatedAt: "created_at",
-			fieldUpdatedAt: "updated_at",
-			want:           "SELECT id, one_field, created_at, updated_at FROM one",
+			table:   "one",
+			fields:  []string{"one_field"},
+			fieldID: "id",
+			want:    "SELECT id, one_field, d_InsertDate, d_UpdateDate FROM one",
 		},
 	}
 
 	for _, tt := range tableTest {
-		assert.Equal(t, tt.want, BuildSQLSelect(tt.table, tt.fields, tt.fieldCreatedAt, tt.fieldUpdatedAt))
+		assert.Equal(t, tt.want, BuildSQLSelect(tt.table, tt.fields, tt.fieldID))
 	}
 }
 
@@ -273,13 +265,13 @@ func TestBuildSQLUpdateBy(t *testing.T) {
 			table:  "cashboxes",
 			fields: []string{"responsable", "country", "user_id", "account"},
 			by:     "user_id",
-			want:   "UPDATE cashboxes SET responsable = $1, country = $2, user_id = $3, account = $4, updated_at = now() WHERE user_id = $5",
+			want:   "UPDATE cashboxes SET responsable = $1, country = $2, user_id = $3, account = $4, d_UpdateDate = now() WHERE user_id = $5",
 		},
 		{
 			table:  "cashboxes",
 			fields: []string{"responsable", "country", "user_id", "account"},
 			by:     "responsable",
-			want:   "UPDATE cashboxes SET responsable = $1, country = $2, user_id = $3, account = $4, updated_at = now() WHERE responsable = $5",
+			want:   "UPDATE cashboxes SET responsable = $1, country = $2, user_id = $3, account = $4, d_UpdateDate = now() WHERE responsable = $5",
 		},
 		{
 			table:  "nothing",
@@ -290,7 +282,7 @@ func TestBuildSQLUpdateBy(t *testing.T) {
 			table:  "one",
 			fields: []string{"one_field"},
 			by:     "user_id",
-			want:   "UPDATE one SET one_field = $1, updated_at = now() WHERE user_id = $2",
+			want:   "UPDATE one SET one_field = $1, d_UpdateDate = now() WHERE user_id = $2",
 		},
 	}
 
@@ -308,7 +300,7 @@ func TestColumnsAliased(t *testing.T) {
 		{
 			aliased: "b",
 			fields:  []string{"title", "slug", "content", "poster"},
-			want:    "b.id, b.title, b.slug, b.content, b.poster, b.created_at, b.updated_at",
+			want:    "b.id, b.title, b.slug, b.content, b.poster, b.d_InsertDate, b.d_UpdateDate",
 		},
 		{
 			aliased: "nothing",
@@ -318,7 +310,7 @@ func TestColumnsAliased(t *testing.T) {
 		{
 			aliased: "one",
 			fields:  []string{"one_field"},
-			want:    "one.id, one.one_field, one.created_at, one.updated_at",
+			want:    "one.id, one.one_field, one.d_InsertDate, one.d_UpdateDate",
 		},
 	}
 
