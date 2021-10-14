@@ -53,8 +53,8 @@ func ParseDateToTime(s string) sql.NullTime {
 	return TimeToNull(t)
 }
 
-// IntToNull devuelve una estructura nil si el entero es (zero)
-func IntToNull(i int64) sql.NullInt64 {
+// Int64ToNull devuelve una estructura nil si el entero es (zero)
+func Int64ToNull(i int64) sql.NullInt64 {
 	r := sql.NullInt64{}
 	r.Int64 = i
 

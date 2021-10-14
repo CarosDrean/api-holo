@@ -12,8 +12,6 @@ type Configuration struct {
 	LogFolder       string   `json:"log_folder"`
 	FilesFolder     string   `json:"files_folder"`
 	PortHttp        int      `json:"port_http"`
-	CertPem         string   `json:"cert_pem"`
-	KeyPem          string   `json:"key_pem"`
 	PublicFileSign  string   `json:"public_file_sign"`
 	PrivateFileSign string   `json:"private_file_sign"`
 	AllowedOrigins  []string `json:"allowed_origins"`

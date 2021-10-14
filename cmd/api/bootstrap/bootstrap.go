@@ -18,7 +18,7 @@ func Run() error {
 	loadSignatures(config, logger)
 	api := newEcho(config, response.HTTPErrorHandler)
 
-	router.InitRoutes(api, db, config, logger)
+	router.InitRoutes(api, db, logger)
 
 	port := fmt.Sprintf(":%d", config.PortHttp)
 	return api.Start(port)

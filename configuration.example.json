@@ -4,8 +4,6 @@
   "log_folder": "./logs",
   "files_folder": "./files",
   "port_http": 14000,
-  "cert_pem": "./certificates/cert.pem",
-  "key_pem": "./certificates/key.pem",
   "public_file_sign": "./certificates/app.rsa.pub",
   "private_file_sign": "./certificates/app.rsa",
   "allowed_origins": [
