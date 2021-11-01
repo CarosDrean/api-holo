@@ -1,4 +1,4 @@
-package service
+package user
 
 import (
 	"database/sql"
@@ -8,18 +8,15 @@ import (
 	"api-holo/model"
 )
 
-const table = "service"
+const table = "systemuser"
 
 var fields = []string{
-	"v_ProtocolId",
-	"v_PersonId",
-	"i_ServiceStatusId",
-	"d_ServiceDate",
-	"i_AptitudeStatusId",
-	"v_OrganizationId",
+	"v_UserName",
+	"v_Pasword",
+	"i_SystemUserTypeId",
 }
 
-const fieldID = "v_ServiceId"
+const fieldID = "i_SystemUserId"
 
 var (
 	psqlInsert = sqlserver.BuildSQLInsert(table, fields, fieldID)
@@ -35,7 +32,7 @@ func New(db *sql.DB) Service {
 	return Service{db}
 }
 
-func (c Service) Create(m *model.Service) error {
+func (c Service) Create(m *model.User) error {
 	stmt, err := c.db.Prepare(psqlInsert)
 	if err != nil {
 		return err
@@ -43,11 +40,9 @@ func (c Service) Create(m *model.Service) error {
 	defer stmt.Close()
 
 	err = stmt.QueryRow(
-		m.ProtocolID,
-		m.PersonID,
-		m.StatusID,
-		m.ServiceDate,
-		m.OrganizationID,
+		m.UserName,
+		m.Password,
+		m.Type,
 	).Scan(&m.ID, &m.CreatedAt)
 	if err != nil {
 		return err
@@ -56,7 +51,7 @@ func (c Service) Create(m *model.Service) error {
 	return nil
 }
 
-func (c Service) Update(m *model.Service) error {
+func (c Service) Update(m *model.User) error {
 	stmt, err := c.db.Prepare(psqlUpdate)
 	if err != nil {
 		return err
@@ -65,11 +60,9 @@ func (c Service) Update(m *model.Service) error {
 
 	err = sqlutil.ExecAffectingOneRow(
 		stmt,
-		m.ProtocolID,
-		m.PersonID,
-		m.StatusID,
-		m.ServiceDate,
-		m.OrganizationID,
+		m.UserName,
+		m.Password,
+		m.Type,
 		m.ID,
 	)
 	if err != nil {
@@ -79,7 +72,7 @@ func (c Service) Update(m *model.Service) error {
 	return nil
 }
 
-func (c Service) GetWhere(filter model.Fields, sort model.SortFields) (model.Service, error) {
+func (c Service) GetWhere(filter model.Fields, sort model.SortFields) (model.User, error) {
 	conditions, args := sqlserver.BuildSQLWhere(filter)
 	query := psqlGetAll + " " + conditions
 
@@ -88,14 +81,14 @@ func (c Service) GetWhere(filter model.Fields, sort model.SortFields) (model.Ser
 
 	stmt, err := c.db.Prepare(query)
 	if err != nil {
-		return model.Service{}, err
+		return model.User{}, err
 	}
 	defer stmt.Close()
 
 	return c.scanRow(stmt.QueryRow(args...))
 }
 
-func (c Service) GetAllWhere(filter model.Fields, sort model.SortFields, pag model.Pagination) (model.Services, error) {
+func (c Service) GetAllWhere(filter model.Fields, sort model.SortFields, pag model.Pagination) (model.Users, error) {
 	conditions, args := sqlserver.BuildSQLWhere(filter)
 	query := psqlGetAll + " " + conditions
 
@@ -117,7 +110,7 @@ func (c Service) GetAllWhere(filter model.Fields, sort model.SortFields, pag mod
 	}
 	defer rows.Close()
 
-	ms := make(model.Services, 0)
+	ms := make(model.Users, 0)
 	for rows.Next() {
 		m, err := c.scanRow(rows)
 		if err != nil {
@@ -129,17 +122,15 @@ func (c Service) GetAllWhere(filter model.Fields, sort model.SortFields, pag mod
 	return ms, nil
 }
 
-func (c Service) scanRow(s sqlutil.RowScanner) (model.Service, error) {
-	m := model.Service{}
+func (c Service) scanRow(s sqlutil.RowScanner) (model.User, error) {
+	m := model.User{}
 	updatedAtNull := sql.NullTime{}
 
 	err := s.Scan(
 		&m.ID,
-		&m.ProtocolID,
-		&m.PersonID,
-		&m.StatusID,
-		&m.ServiceDate,
-		&m.OrganizationID,
+		&m.UserName,
+		&m.Password,
+		&m.Type,
 		&m.CreatedAt,
 		&updatedAtNull,
 	)
