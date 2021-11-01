@@ -23,7 +23,7 @@ func InitRoutes(app *echo.Echo, db *sql.DB, logger model.Logger, privateKey *rsa
 	health.NewRouter(app)
 
 	// L
-	login.NewRouter(app, db, authMiddleware, logger, privateKey)
+	login.NewRouter(app, db, logger, privateKey)
 
 	// S
 	service.NewRouter(app, db, authMiddleware, logger)

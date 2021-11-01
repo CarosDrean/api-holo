@@ -2,6 +2,7 @@ package user
 
 import (
 	"database/sql"
+	"strconv"
 
 	"api-holo/infraestucture/sqlserver"
 	sqlutil "api-holo/kit/sqlserver"
@@ -12,7 +13,7 @@ const table = "systemuser"
 
 var fields = []string{
 	"v_UserName",
-	"v_Pasword",
+	"v_Password",
 	"i_SystemUserTypeId",
 }
 
@@ -124,20 +125,24 @@ func (c Service) GetAllWhere(filter model.Fields, sort model.SortFields, pag mod
 
 func (c Service) scanRow(s sqlutil.RowScanner) (model.User, error) {
 	m := model.User{}
+	createdAtNull := sql.NullTime{}
 	updatedAtNull := sql.NullTime{}
+	idInt := sql.NullInt64{}
 
 	err := s.Scan(
-		&m.ID,
+		&idInt,
 		&m.UserName,
 		&m.Password,
 		&m.Type,
-		&m.CreatedAt,
+		&createdAtNull,
 		&updatedAtNull,
 	)
 	if err != nil {
 		return m, err
 	}
 
+	m.ID = strconv.Itoa(int(idInt.Int64))
+	m.CreatedAt = createdAtNull.Time
 	m.UpdatedAt = updatedAtNull.Time
 
 	return m, nil

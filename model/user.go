@@ -8,12 +8,12 @@ const (
 	UserTypeExternalMedic = 3
 )
 
-type UserType int8
+type UserType int
 
 type User struct {
 	ID        string    `json:"id"`
 	UserName  string    `json:"user_name"`
-	Password  string    `json:"password"`
+	Password  string    `json:"password,omitempty"`
 	Type      UserType  `json:"type"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`

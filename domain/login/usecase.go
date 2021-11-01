@@ -49,6 +49,8 @@ func (l Login) ValidateLogin(userName, password string) (model.UserLogin, error)
 		return model.UserLogin{}, fmt.Errorf("login: generate token, err: %v", err)
 	}
 
+	user.Password = ""
+
 	res := model.UserLogin{
 		User:  user,
 		Token: token,

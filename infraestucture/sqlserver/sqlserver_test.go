@@ -1,6 +1,7 @@
 package sqlserver
 
 import (
+	"database/sql"
 	"testing"
 	"time"
 
@@ -20,7 +21,7 @@ func TestBuildSQLInsert(t *testing.T) {
 			table:   "cashboxes",
 			fields:  []string{"responsable", "country", "user_id", "account"},
 			fieldID: "id",
-			want:    "INSERT INTO cashboxes (responsable,country,user_id,account) VALUES ($1,$2,$3,$4) RETURNING id, d_InsertDate",
+			want:    "INSERT INTO cashboxes (responsable,country,user_id,account) VALUES (@p1,@p2,@p3,@p4) RETURNING id, d_InsertDate",
 		},
 		{
 			table:   "nothing",
@@ -32,7 +33,7 @@ func TestBuildSQLInsert(t *testing.T) {
 			table:   "one",
 			fields:  []string{"one_field"},
 			fieldID: "id",
-			want:    "INSERT INTO one (one_field) VALUES ($1) RETURNING id, d_InsertDate",
+			want:    "INSERT INTO one (one_field) VALUES (@p1) RETURNING id, d_InsertDate",
 		},
 	}
 
@@ -52,7 +53,7 @@ func TestBuildSQLUpdateByID(t *testing.T) {
 			table:   "cashboxes",
 			fields:  []string{"responsable", "country", "user_id", "account"},
 			fieldID: "id",
-			want:    "UPDATE cashboxes SET responsable = $1, country = $2, user_id = $3, account = $4, d_UpdateDate = GETDATE() WHERE id = $5",
+			want:    "UPDATE cashboxes SET responsable = @p1, country = @p2, user_id = @p3, account = @p4, d_UpdateDate = GETDATE() WHERE id = @p5",
 		},
 		{
 			table:   "nothing",
@@ -64,7 +65,7 @@ func TestBuildSQLUpdateByID(t *testing.T) {
 			table:   "one",
 			fields:  []string{"one_field"},
 			fieldID: "id",
-			want:    "UPDATE one SET one_field = $1, d_UpdateDate = GETDATE() WHERE id = $2",
+			want:    "UPDATE one SET one_field = @p1, d_UpdateDate = GETDATE() WHERE id = @p2",
 		},
 	}
 
@@ -161,8 +162,8 @@ func TestBuildSQLWhere(t *testing.T) {
 				{Name: "certificates", Value: 3, Operator: model.GreaterThan},
 				{Name: "is_active", Value: true},
 			},
-			wantQuery: "WHERE name = $1 AND age = $2 OR course = $3 AND id IN (1,4,9) AND description ILIKE $4 AND certificates > $5 AND is_active = $6",
-			wantArgs:  []interface{}{"Alejandro", 30, "Go", "%golang%", 3, true},
+			wantQuery: "WHERE name = @p1 AND age = @p2 OR course = @p3 AND id IN (1,4,9) AND description ILIKE @p4 AND certificates > @p5 AND is_active = @p6",
+			wantArgs:  []interface{}{sql.NamedArg{Name: "p1", Value: "Alejandro"}, sql.NamedArg{Name: "p2", Value: 30}, sql.NamedArg{Name: "p3", Value: "Go"}, sql.NamedArg{Name: "p4", Value: "%golang%"}, sql.NamedArg{Name: "p5", Value: 3}, sql.NamedArg{Name: "p6", Value: true}},
 		},
 		{
 			name: "where with operators and string ILIKE",
@@ -172,8 +173,8 @@ func TestBuildSQLWhere(t *testing.T) {
 				{Name: "enable", Value: true},
 				{Name: "code", Value: []string{"COL", "COP"}, Operator: model.In},
 			},
-			wantQuery: "WHERE country = $1 AND currency_id = $2 OR enable = $3 AND code IN ('COL','COP')",
-			wantArgs:  []interface{}{"COLOMBIA", 3, true},
+			wantQuery: "WHERE country = @p1 AND currency_id = @p2 OR enable = @p3 AND code IN ('COL','COP')",
+			wantArgs:  []interface{}{sql.NamedArg{Name: "p1", Value: "COLOMBIA"}, sql.NamedArg{Name: "p2", Value: 3}, sql.NamedArg{Name: "p3", Value: true}},
 		},
 		{
 			name: "where with operators and NOT NULL",
@@ -184,8 +185,8 @@ func TestBuildSQLWhere(t *testing.T) {
 				{Name: "enable", Value: true},
 				{Name: "code", Value: []string{"COL", "COP"}, Operator: model.In},
 			},
-			wantQuery: "WHERE country = $1 AND currency_id = $2 OR begins_at IS NULL AND enable = $3 AND code IN ('COL','COP')",
-			wantArgs:  []interface{}{"COLOMBIA", 3, true},
+			wantQuery: "WHERE country = @p1 AND currency_id = @p2 OR begins_at IS NULL AND enable = @p3 AND code IN ('COL','COP')",
+			wantArgs:  []interface{}{sql.NamedArg{Name: "p1", Value: "COLOMBIA"}, sql.NamedArg{Name: "p2", Value: 3}, sql.NamedArg{Name: "p3", Value: true}},
 		},
 		{
 			name: "where with aliased",
@@ -195,8 +196,8 @@ func TestBuildSQLWhere(t *testing.T) {
 				{Source: "contracts", Name: "is_active", Value: true},
 				{Source: "contract_statuses", Name: "description", Value: "ACTIVE", Operator: model.Ilike},
 			},
-			wantQuery: "WHERE contracts.employer_id = $1 AND contracts.pay_frequency_id = $2 OR contracts.is_active = $3 AND contract_statuses.description ILIKE $4",
-			wantArgs:  []interface{}{777, 2, true, "ACTIVE"},
+			wantQuery: "WHERE contracts.employer_id = @p1 AND contracts.pay_frequency_id = @p2 OR contracts.is_active = @p3 AND contract_statuses.description ILIKE @p4",
+			wantArgs:  []interface{}{sql.NamedArg{Name: "p1", Value: 777}, sql.NamedArg{Name: "p2", Value: 2}, sql.NamedArg{Name: "p3", Value: true}, sql.NamedArg{Name: "p4", Value: "ACTIVE"}},
 		},
 		{
 			name: "where with aliased where some fields have missing source",
@@ -206,8 +207,8 @@ func TestBuildSQLWhere(t *testing.T) {
 				{Name: "is_active", Value: false},
 				{Source: "contract_statuses", Name: "description", Value: "CREATED", Operator: model.Ilike},
 			},
-			wantQuery: "WHERE employer_id = $1 AND pay_frequency_id = $2 OR is_active = $3 AND contract_statuses.description ILIKE $4",
-			wantArgs:  []interface{}{19, 1, false, "CREATED"},
+			wantQuery: "WHERE employer_id = @p1 AND pay_frequency_id = @p2 OR is_active = @p3 AND contract_statuses.description ILIKE @p4",
+			wantArgs:  []interface{}{sql.NamedArg{Name: "p1", Value: 19}, sql.NamedArg{Name: "p2", Value: 1}, sql.NamedArg{Name: "p3", Value: false}, sql.NamedArg{Name: "p4", Value: "CREATED"}},
 		},
 		{
 			name: "where with group conditions",
@@ -218,8 +219,8 @@ func TestBuildSQLWhere(t *testing.T) {
 				{GroupClose: true, Name: "is_staff", Value: false},
 				{Source: "contract_statuses", Name: "description", Value: "ACTIVE", Operator: model.Ilike},
 			},
-			wantQuery: "WHERE employer_id = $1 AND pay_frequency_id = $2 AND (is_active = $3 OR is_staff = $4) AND contract_statuses.description ILIKE $5",
-			wantArgs:  []interface{}{1, 2, true, false, "ACTIVE"},
+			wantQuery: "WHERE employer_id = @p1 AND pay_frequency_id = @p2 AND (is_active = @p3 OR is_staff = @p4) AND contract_statuses.description ILIKE @p5",
+			wantArgs:  []interface{}{sql.NamedArg{Name: "p1", Value: 1}, sql.NamedArg{Name: "p2", Value: 2}, sql.NamedArg{Name: "p3", Value: true}, sql.NamedArg{Name: "p4", Value: false}, sql.NamedArg{Name: "p5", Value: "ACTIVE"}},
 		},
 		{
 			name: "where with group conditions and with missing GroupClose key",
@@ -229,8 +230,8 @@ func TestBuildSQLWhere(t *testing.T) {
 				{GroupOpen: true, Name: "is_active", Value: true, ChainingKey: model.Or},
 				{Source: "contract_statuses", Name: "description", Value: "ACTIVE", Operator: model.Ilike},
 			},
-			wantQuery: "WHERE employer_id = $1 AND pay_frequency_id = $2 AND (is_active = $3 OR contract_statuses.description ILIKE $4)",
-			wantArgs:  []interface{}{1, 2, true, "ACTIVE"},
+			wantQuery: "WHERE employer_id = @p1 AND pay_frequency_id = @p2 AND (is_active = @p3 OR contract_statuses.description ILIKE @p4)",
+			wantArgs:  []interface{}{sql.NamedArg{Name: "p1", Value: 1}, sql.NamedArg{Name: "p2", Value: 2}, sql.NamedArg{Name: "p3", Value: true}, sql.NamedArg{Name: "p4", Value: "ACTIVE"}},
 		},
 		{
 			name: "where with group conditions and aliases - complex",
@@ -242,8 +243,8 @@ func TestBuildSQLWhere(t *testing.T) {
 				{GroupOpen: true, Source: "cs", Name: "description", Operator: model.Ilike, Value: "creado"},
 				{GroupClose: true, Source: "c", Name: "hire_date", Operator: model.LessThanOrEqualTo, Value: fakeDate},
 			},
-			wantQuery: "WHERE c.employer_id = $1 AND c.termination_date IS NOT NULL AND c.pay_frequency_id = $2 AND (cs.description ILIKE $3 OR (cs.description ILIKE $4 AND c.hire_date <= $5))",
-			wantArgs:  []interface{}{1, 2, "activo", "creado", "2021-04-28"},
+			wantQuery: "WHERE c.employer_id = @p1 AND c.termination_date IS NOT NULL AND c.pay_frequency_id = @p2 AND (cs.description ILIKE @p3 OR (cs.description ILIKE @p4 AND c.hire_date <= @p5))",
+			wantArgs:  []interface{}{sql.NamedArg{Name: "p1", Value: 1}, sql.NamedArg{Name: "p2", Value: 2}, sql.NamedArg{Name: "p3", Value: "activo"}, sql.NamedArg{Name: "p4", Value: "creado"}, sql.NamedArg{Name: "p5", Value: "2021-04-28"}},
 		},
 	}
 
@@ -265,13 +266,13 @@ func TestBuildSQLUpdateBy(t *testing.T) {
 			table:  "cashboxes",
 			fields: []string{"responsable", "country", "user_id", "account"},
 			by:     "user_id",
-			want:   "UPDATE cashboxes SET responsable = $1, country = $2, user_id = $3, account = $4, d_UpdateDate = now() WHERE user_id = $5",
+			want:   "UPDATE cashboxes SET responsable = @p1, country = @p2, user_id = @p3, account = @p4, d_UpdateDate = now() WHERE user_id = @p5",
 		},
 		{
 			table:  "cashboxes",
 			fields: []string{"responsable", "country", "user_id", "account"},
 			by:     "responsable",
-			want:   "UPDATE cashboxes SET responsable = $1, country = $2, user_id = $3, account = $4, d_UpdateDate = now() WHERE responsable = $5",
+			want:   "UPDATE cashboxes SET responsable = @p1, country = @p2, user_id = @p3, account = @p4, d_UpdateDate = now() WHERE responsable = @p5",
 		},
 		{
 			table:  "nothing",
@@ -282,7 +283,7 @@ func TestBuildSQLUpdateBy(t *testing.T) {
 			table:  "one",
 			fields: []string{"one_field"},
 			by:     "user_id",
-			want:   "UPDATE one SET one_field = $1, d_UpdateDate = now() WHERE user_id = $2",
+			want:   "UPDATE one SET one_field = @p1, d_UpdateDate = now() WHERE user_id = @p2",
 		},
 	}
 

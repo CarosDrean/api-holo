@@ -1,6 +1,7 @@
 package sqlserver
 
 import (
+	"database/sql"
 	"fmt"
 	"strings"
 
@@ -13,7 +14,7 @@ func BuildSQLInsert(table string, fields []string, fieldID string) string {
 
 	for k, v := range fields {
 		args += fmt.Sprintf("%s,", v)
-		vals += fmt.Sprintf("$%d,", k+1)
+		vals += fmt.Sprintf("@p%d,", k+1)
 	}
 
 	if len(fields) > 0 {
@@ -32,10 +33,10 @@ func BuildSQLUpdateByID(table string, fields []string, fieldID string) string {
 
 	var args string
 	for k, v := range fields {
-		args += fmt.Sprintf("%s = $%d, ", v, k+1)
+		args += fmt.Sprintf("%s = @p%d, ", v, k+1)
 	}
 
-	return fmt.Sprintf("UPDATE %s SET %sd_UpdateDate = GETDATE() WHERE %s = $%d", table, args, fieldID, len(fields)+1)
+	return fmt.Sprintf("UPDATE %s SET %sd_UpdateDate = GETDATE() WHERE %s = @p%d", table, args, fieldID, len(fields)+1)
 }
 
 // BuildSQLSelect builds a query SELECT of postgres
@@ -74,10 +75,10 @@ func BuildSQLUpdateBy(table string, fields []string, by string) string {
 
 	var args string
 	for k, v := range fields {
-		args += fmt.Sprintf("%s = $%d, ", v, k+1)
+		args += fmt.Sprintf("%s = @p%d, ", v, k+1)
 	}
 
-	return fmt.Sprintf("UPDATE %s SET %sd_UpdateDate = now() WHERE %s = $%d", table, args, by, len(fields)+1)
+	return fmt.Sprintf("UPDATE %s SET %sd_UpdateDate = now() WHERE %s = @p%d", table, args, by, len(fields)+1)
 }
 
 // BuildSQLWhere builds and returns a query WHERE of postgres and its arguments
@@ -112,7 +113,7 @@ func BuildSQLWhere(fields model.Fields) (string, []interface{}) {
 				field.Operator,
 			)
 		default:
-			query = fmt.Sprintf("%s %s %s $%d",
+			query = fmt.Sprintf("%s %s %s @p%d",
 				query,
 				strings.ToLower(field.Name),
 				field.Operator,
@@ -139,7 +140,7 @@ func BuildSQLWhere(fields model.Fields) (string, []interface{}) {
 		// Add arguments of the parameters except "IN" operator
 		if field.Operator != model.In && field.Operator != model.IsNull &&
 			field.Operator != model.IsNotNull {
-			args = append(args, field.Value)
+			args = append(args, sql.Named(fmt.Sprintf("p%d", paramSequence), field.Value))
 			paramSequence++
 		}
 	}

@@ -4,6 +4,7 @@ import (
 	"api-holo/domain/login"
 	"api-holo/infraestucture/handler/response"
 	"api-holo/model"
+	"fmt"
 	"github.com/labstack/echo/v4"
 )
 
@@ -24,6 +25,7 @@ func (h Handler) ValidateLogin(c echo.Context) error {
 
 	userLogin, err := h.useCase.ValidateLogin(m.UserName, m.Password)
 	if err != nil {
+		fmt.Println(err)
 		return h.response.Error(c, "useCase.ValidateLogin()", err)
 	}
 
