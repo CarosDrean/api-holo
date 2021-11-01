@@ -33,7 +33,7 @@ func (u User) Update(m *model.User) error {
 func (u User) GetWhere(filter model.Fields, sort model.SortFields) (model.User, error) {
 	m, err := u.storage.GetWhere(filter, sort)
 	if err != nil {
-		return model.User{}, fmt.Errorf("user: %v", err)
+		return model.User{}, fmt.Errorf("user: %w", err)
 	}
 
 	return m, nil
