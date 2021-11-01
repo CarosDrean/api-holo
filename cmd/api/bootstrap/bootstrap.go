@@ -15,10 +15,10 @@ func Run() error {
 	config := newConfiguration(*pathConfig)
 	logger := newLogrus(config.LogFolder, false)
 	db := newSQLDatabase(config)
-	loadSignatures(config, logger)
+	privateKey := loadSignatures(config, logger)
 	api := newEcho(config, response.HTTPErrorHandler)
 
-	router.InitRoutes(api, db, logger)
+	router.InitRoutes(api, db, logger, privateKey)
 
 	port := fmt.Sprintf(":%d", config.PortHttp)
 	return api.Start(port)

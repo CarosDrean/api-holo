@@ -1,10 +1,13 @@
 package bootstrap
 
 import (
-	"api-holo/kit/authorization"
+	"crypto/rsa"
 	"fmt"
+	"github.com/dgrijalva/jwt-go"
 	"io/ioutil"
 	"log"
+
+	"api-holo/kit/authorization"
 )
 
 type Logger interface {
@@ -12,7 +15,7 @@ type Logger interface {
 	Warnf(format string, args ...interface{})
 }
 
-func loadSignatures(conf Configuration, logger Logger) {
+func loadSignatures(conf Configuration, logger Logger) *rsa.PrivateKey {
 	priv := conf.PrivateFileSign
 	publ := conf.PublicFileSign
 
@@ -23,6 +26,11 @@ func loadSignatures(conf Configuration, logger Logger) {
 	checkErr(err, fmt.Sprintf("no se pudo leer el archivo de firma público %s", publ))
 
 	authorization.LoadSignatures(fpriv, fpubl, logger)
+
+	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(fpriv)
+	checkErr(err, fmt.Sprintf("no se pudo convertir el archivo de firma privado %s", priv))
+
+	return privateKey
 }
 
 func checkErr(err error, msg string) {
